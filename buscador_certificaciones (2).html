@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buscador de Certificaciones</title>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --rojo: #C0392B;
+      --rojo-oscuro: #96281B;
+      --dorado: #F39C12;
+      --crema: #FDF6EC;
+      --gris: #F4F4F4;
+      --texto: #1a1a1a;
+      --texto-suave: #777;
+      --borde: #E0D6CC;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Sora', sans-serif;
+      background: var(--crema);
+      color: var(--texto);
+      min-height: 100vh;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--rojo);
+      color: white;
+      padding: 28px 24px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 160px; height: 160px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 50%;
+    }
+    header::after {
+      content: '';
+      position: absolute;
+      bottom: -30px; left: -30px;
+      width: 120px; height: 120px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 50%;
+    }
+    .header-badge {
+      display: inline-block;
+      background: var(--dorado);
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 10px;
+    }
+    header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 4px;
+    }
+    header p {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    /* BUSCADOR */
+    .search-wrap {
+      padding: 20px 16px 0;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: white;
+      border: 2px solid var(--borde);
+      border-radius: 12px;
+      padding: 10px 16px;
+      gap: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+      transition: border-color 0.2s;
+    }
+    .search-box:focus-within {
+      border-color: var(--rojo);
+    }
+    .search-icon { font-size: 18px; color: var(--texto-suave); flex-shrink: 0; }
+    .search-box input {
+      border: none;
+      outline: none;
+      font-family: 'Sora', sans-serif;
+      font-size: 15px;
+      color: var(--texto);
+      width: 100%;
+      background: transparent;
+    }
+    .search-box input::placeholder { color: #bbb; }
+    #contador {
+      font-size: 12px;
+      color: var(--texto-suave);
+      text-align: right;
+      padding: 8px 4px 0;
+    }
+
+    /* FILTROS */
+    .filtros {
+      display: flex;
+      gap: 8px;
+      padding: 10px 16px 0;
+      max-width: 700px;
+      margin: 0 auto;
+      flex-wrap: wrap;
+    }
+    .filtro-btn {
+      border: 1.5px solid var(--borde);
+      background: white;
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 12px;
+      font-family: 'Sora', sans-serif;
+      cursor: pointer;
+      color: var(--texto-suave);
+      transition: all 0.2s;
+    }
+    .filtro-btn.activo, .filtro-btn:hover {
+      background: var(--rojo);
+      border-color: var(--rojo);
+      color: white;
+    }
+
+    /* RESULTADOS */
+    .resultados {
+      padding: 16px;
+      max-width: 700px;
+      margin: 0 auto;
+      display: grid;
+      gap: 10px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      border: 1px solid var(--borde);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: box-shadow 0.2s, transform 0.2s;
+      animation: aparecer 0.3s ease;
+    }
+    @keyframes aparecer {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .card:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.09);
+      transform: translateY(-2px);
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .card-nombre {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--texto);
+      line-height: 1.3;
+    }
+    .card-codigo {
+      background: var(--gris);
+      color: var(--texto-suave);
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .card-curso {
+      font-size: 13px;
+      color: var(--rojo);
+      font-weight: 500;
+    }
+    .card-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .tag {
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: var(--crema);
+      color: var(--texto-suave);
+      border: 1px solid var(--borde);
+    }
+    .tag-dorado {
+      background: #FEF9EC;
+      color: #A07000;
+      border-color: #F0D080;
+    }
+    .card-fecha {
+      font-size: 11px;
+      color: #bbb;
+    }
+
+    /* ESTADO VACÍO */
+    .vacio {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--texto-suave);
+    }
+    .vacio-icon { font-size: 48px; margin-bottom: 12px; }
+    .vacio h3 { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+    .vacio p { font-size: 13px; }
+
+    /* LOADING */
+    .loading {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--texto-suave);
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--borde);
+      border-top-color: var(--rojo);
+      border-radius: 50%;
+      animation: girar 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes girar { to { transform: rotate(360deg); } }
+
+    /* ERROR CONFIG */
+    .config-aviso {
+      background: #FEF3CD;
+      border: 1.5px solid #F0C050;
+      border-radius: 12px;
+      padding: 16px;
+      margin: 16px;
+      font-size: 13px;
+      max-width: 668px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .config-aviso strong { color: #A07000; }
+    .config-aviso code {
+      background: #F0E0A0;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 11px;
+      color: #ccc;
+    }
+
+    /* FAB BUTTON */
+    .fab {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--rojo);
+      color: white;
+      font-size: 28px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(192,57,43,0.4);
+      z-index: 100;
+      transition: transform 0.2s;
+    }
+    .fab:hover { transform: scale(1.1); }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200;
+    }
+    .modal-overlay.open { display: block; }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 460px;
+      max-height: 85vh;
+      overflow-y: auto;
+      z-index: 300;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .modal.open { display: block; }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--borde);
+    }
+    .modal-title { font-size: 16px; font-weight: 600; margin: 0; color: var(--texto); }
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      color: var(--texto-suave);
+    }
+    .modal-body { padding: 16px 20px; display: grid; gap: 12px; }
+    .modal-footer {
+      padding: 12px 20px;
+      border-top: 1px solid var(--borde);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    .field-group label { display: block; font-size: 12px; font-weight: 500; color: var(--texto-suave); margin-bottom: 4px; }
+    .field-group input {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1.5px solid var(--borde);
+      border-radius: 8px;
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    .field-group input:focus { border-color: var(--rojo); }
+    .btn-cancelar {
+      padding: 8px 20px;
+      border: 1.5px solid var(--borde);
+      background: white;
+      border-radius: 8px;
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .btn-guardar {
+      padding: 8px 24px;
+      background: var(--rojo);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn-guardar:disabled { opacity: 0.6; }
+    .msg-error { background: #FCEBEB; color: #A32D2D; border-radius: 8px; padding: 8px 12px; font-size: 12px; }
+    .msg-ok { background: #EAF7F0; color: #1A7A4A; border-radius: 8px; padding: 8px 12px; font-size: 12px; }
+
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-badge">Sistema de Consulta</div>
+  <h1>📜 Certificaciones</h1>
+  <p>Busca por nombre, DNI, curso o ciudad</p>
+</header>
+
+
+<div class="config-aviso" id="avisoConfig" style="display:none">
+  <strong>⚙️ Paso final: conecta tu base de datos</strong><br><br>
+  Abre este archivo en un editor de texto (Notepad) y cambia estas 2 líneas:<br><br>
+  <code>TU_URL_SUPABASE</code> → tu URL del proyecto (ej: https://xyz.supabase.co)<br>
+  <code>TU_CLAVE_SUPABASE</code> → tu clave "anon public"<br><br>
+  Encuéntralas en Supabase → Settings → API
+</div>
+
+<div class="search-wrap">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="buscador" placeholder="Busca por nombre, DNI, curso, ciudad..." oninput="filtrar()">
+  </div>
+  <div id="contador"></div>
+</div>
+
+<div class="filtros">
+  <button class="filtro-btn activo" onclick="setFiltro('', this)">Todos</button>
+  <button class="filtro-btn" onclick="setFiltro('PUCALLPA', this)">Pucallpa</button>
+  <button class="filtro-btn" onclick="setFiltro('LIMA', this)">Lima</button>
+  <button class="filtro-btn" onclick="setFiltro('OFIMÁTICA', this)">Ofimática</button>
+  <button class="filtro-btn" onclick="setFiltro('INGLÉS', this)">Inglés</button>
+</div>
+
+<div class="resultados" id="resultados">
+  <div class="loading">
+    <div class="spinner"></div>
+    <p>Cargando certificaciones...</p>
+  </div>
+</div>
+
+<footer>Sistema de Certificaciones · Powered by Supabase</footer>
+
+<!-- BOTON FLOTANTE -->
+<button class="fab" onclick="abrirModal()" title="Agregar alumno">+</button>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="cerrarModal()"></div>
+<div class="modal" id="modal">
+  <div class="modal-header"><p class="modal-title">Agregar nuevo alumno</p><button class="modal-close" onclick="cerrarModal()">X</button></div>
+  <div class="modal-body">
+    <div class="field-group"><label>Codigo</label><input type="text" id="f_codigo" placeholder="Ej: 1012"></div>
+    <div class="field-group"><label>Apellidos y Nombres</label><input type="text" id="f_nombre" placeholder="Nombre completo"></div>
+    <div class="field-group"><label>DNI</label><input type="text" id="f_dni" placeholder="Ej: 45123456"></div>
+    <div class="field-group"><label>Ciudad</label><input type="text" id="f_ciudad" placeholder="Ej: PUCALLPA"></div>
+    <div class="field-group"><label>Curso</label><input type="text" id="f_curso" placeholder="Ej: OFIMATICA BASICA"></div>
+    <div class="field-group"><label>Mencion</label><input type="text" id="f_mencion" placeholder="Ej: MICROSOFT OFFICE 2019"></div>
+    <div class="field-group"><label>Fecha Inicio</label><input type="date" id="f_fecha_inicio"></div>
+    <div class="field-group"><label>Fecha Termino</label><input type="date" id="f_fecha_termino"></div>
+    <div id="msg_error" class="msg-error" style="display:none"></div>
+    <div id="msg_ok" class="msg-ok" style="display:none">Alumno agregado correctamente!</div>
+  </div>
+  <div class="modal-footer"><button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button><button class="btn-guardar" id="btnGuardar" onclick="guardarAlumno()">Guardar</button></div>
+</div>
+
+<script>
+  // ============================================
+  // 🔧 CAMBIA ESTOS 2 DATOS CON LOS TUYOS
+  const URL_SUPABASE = 'https://mdvhnqivpkedqqgknhfo.supabase.co';
+  const CLAVE_SUPABASE = 'sb_publishable_u7GSwT3TEqlb3Zvtplt17g_Z3xkKFMB';
+  const NOMBRE_TABLA = 'CERTIFICACIONES'; // nombre de tu tabla en Supabase
+  // ============================================
+
+  let todos = [];
+  let ciudadFiltro = '';
+
+  async function cargar() {
+    if (URL_SUPABASE === 'TU_URL_SUPABASE') {
+      // Modo demo con datos de ejemplo
+      todos = [
+        { codigo: 8478, apellidos_y_nombres: 'ISAAC ANDERSON MOURAO ESCOBED', dni: '47743772', ciudad: 'PUCALLPA', curso: 'ANÁLISIS DE DATOS SPSS', fecha_de_inicio: '2020-02-07', fecha_de_termino: '2020-10-18', mencion: 'AUXILIAR EN BIBLIOTECA', cursos_1: '', nota_1: '', total_de_certificados: 262 },
+        { codigo: 8474, apellidos_y_nombres: 'INOCENTE CÓRDOVA, MARJIN SHEYLA', dni: '62285159', ciudad: 'NYO', curso: 'OFIMÁTICA', fecha_de_inicio: '2020-03-07', fecha_de_termino: '2020-10-18', mencion: '', cursos_1: 'WINDOWS', nota_1: 17, total_de_certificados: 262 },
+        { codigo: 8475, apellidos_y_nombres: 'TERESA FERNANDEZ VARGAS MARTINEZ', dni: '', ciudad: 'PUCALLPA', curso: 'OFIMÁTICA BÁSICA', fecha_de_inicio: '2020-07-03', fecha_de_termino: '2020-10-18', mencion: 'MICROSOFT OFFICE 2019', cursos_1: 'WINDOWS', nota_1: 17, total_de_certificados: 265 },
+        { codigo: 8476, apellidos_y_nombres: 'SANLUCIANO ABEYALO, CRISTHIAN', dni: '', ciudad: 'PUCALLPA - LIMA', curso: 'REDES', fecha_de_inicio: '2020-06-01', fecha_de_termino: '2020-10-18', mencion: 'REDES TELECOMUNICACIONES', cursos_1: 'TIPO DE REDES', nota_1: 18, total_de_certificados: 268 },
+        { codigo: 8477, apellidos_y_nombres: 'CRISTINA MORENO PIRCA', dni: '', ciudad: 'PUCALLPA - LIMA', curso: 'OFIMÁTICA BÁSICA', fecha_de_inicio: '2020-07-03', fecha_de_termino: '2020-10-18', mencion: 'MICROSOFT OFFICE 2019', cursos_1: 'WINDOWS', nota_1: 17, total_de_certificados: 265 },
+      ];
+      mostrar(todos);
+      return;
+    }
+
+    document.getElementById('avisoConfig').style.display = 'none';
+
+    try {
+      const r = await fetch(`${URL_SUPABASE}/rest/v1/${NOMBRE_TABLA}?select=*&limit=1000`, {
+        headers: {
+          'apikey': CLAVE_SUPABASE,
+          'Authorization': `Bearer ${CLAVE_SUPABASE}`
+        }
+      });
+      if (!r.ok) throw new Error('Error al cargar');
+      todos = await r.json();
+      mostrar(todos);
+    } catch (e) {
+      document.getElementById('resultados').innerHTML = `
+        <div class="vacio">
+          <div class="vacio-icon">⚠️</div>
+          <h3>No se pudo conectar</h3>
+          <p>Verifica tu URL y clave de Supabase</p>
+        </div>`;
+    }
+  }
+
+  function filtrar() {
+    const q = document.getElementById('buscador').value.toLowerCase().trim();
+    let lista = todos;
+    if (ciudadFiltro) lista = lista.filter(r => (r.ciudad || '').toUpperCase().includes(ciudadFiltro) || (r.curso || '').toUpperCase().includes(ciudadFiltro));
+    if (q) lista = lista.filter(r =>
+      (r.apellidos_y_nombres || '').toLowerCase().includes(q) ||
+      (r.dni || '').includes(q) ||
+      (r.curso || '').toLowerCase().includes(q) ||
+      (r.ciudad || '').toLowerCase().includes(q) ||
+      (r.mencion || '').toLowerCase().includes(q) ||
+      String(r.codigo || '').includes(q)
+    );
+    mostrar(lista);
+  }
+
+  function setFiltro(ciudad, btn) {
+    ciudadFiltro = ciudad;
+    document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
+    btn.classList.add('activo');
+    filtrar();
+  }
+
+  function mostrar(lista) {
+    const cont = document.getElementById('resultados');
+    const contador = document.getElementById('contador');
+    contador.textContent = `${lista.length} resultado${lista.length !== 1 ? 's' : ''} encontrado${lista.length !== 1 ? 's' : ''}`;
+
+    if (lista.length === 0) {
+      cont.innerHTML = `
+        <div class="vacio">
+          <div class="vacio-icon">🔎</div>
+          <h3>No se encontraron resultados</h3>
+          <p>Intenta con otro nombre, DNI o curso</p>
+        </div>`;
+      return;
+    }
+
+    cont.innerHTML = lista.map(r => `
+      <div class="card">
+        <div class="card-top">
+          <div class="card-nombre">${r.apellidos_y_nombres || '—'}</div>
+          <div class="card-codigo">#${r.codigo || ''}</div>
+        </div>
+        <div class="card-curso">📚 ${r.curso || '—'}</div>
+        <div class="card-info">
+          ${r.dni ? `<span class="tag">DNI: ${r.dni}</span>` : ''}
+          ${r.ciudad ? `<span class="tag">📍 ${r.ciudad}</span>` : ''}
+          ${r.mencion ? `<span class="tag tag-dorado">🏅 ${r.mencion}</span>` : ''}
+          ${r.total_de_certificados ? `<span class="tag">Total: ${r.total_de_certificados} cert.</span>` : ''}
+        </div>
+        ${r.fecha_de_termino ? `<div class="card-fecha">Fecha: ${r.fecha_de_termino}</div>` : ''}
+      </div>
+    `).join('');
+  }
+
+  cargar();
+
+  function abrirModal() {
+    document.getElementById('modal').classList.add('open');
+    document.getElementById('modalOverlay').classList.add('open');
+    document.getElementById('msg_ok').style.display = 'none';
+    document.getElementById('msg_error').style.display = 'none';
+  }
+
+  function cerrarModal() {
+    document.getElementById('modal').classList.remove('open');
+    document.getElementById('modalOverlay').classList.remove('open');
+    ['f_codigo','f_nombre','f_dni','f_ciudad','f_curso','f_mencion','f_fecha_inicio','f_fecha_termino'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+  }
+
+  async function guardarAlumno() {
+    const nombre = document.getElementById('f_nombre').value.trim();
+    const curso = document.getElementById('f_curso').value.trim();
+    if (!nombre || !curso) {
+      const err = document.getElementById('msg_error');
+      err.style.display = 'block';
+      err.textContent = 'El nombre y el curso son obligatorios.';
+      return;
+    }
+    const btn = document.getElementById('btnGuardar');
+    btn.textContent = 'Guardando...';
+    btn.disabled = true;
+    const nuevo = {
+      codigo: document.getElementById('f_codigo').value.trim() || null,
+      apellidos_y_nombres: nombre,
+      dni: document.getElementById('f_dni').value.trim() || null,
+      ciudad: document.getElementById('f_ciudad').value.trim() || null,
+      curso: curso,
+      mencion: document.getElementById('f_mencion').value.trim() || null,
+      fecha_inicio: document.getElementById('f_fecha_inicio').value || null,
+      fecha_termino: document.getElementById('f_fecha_termino').value || null,
+    };
+    try {
+      const r = await fetch(`${URL_SUPABASE}/rest/v1/${NOMBRE_TABLA}`, {
+        method: 'POST',
+        headers: {
+          'apikey': CLAVE_SUPABASE,
+          'Authorization': `Bearer ${CLAVE_SUPABASE}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(nuevo)
+      });
+      if (!r.ok) throw new Error('Error al guardar');
+      document.getElementById('msg_ok').style.display = 'block';
+      document.getElementById('msg_error').style.display = 'none';
+      await cargar();
+      setTimeout(cerrarModal, 1500);
+    } catch(e) {
+      const err = document.getElementById('msg_error');
+      err.style.display = 'block';
+      err.textContent = 'Error al guardar. Verifica tu conexion.';
+    }
+    btn.textContent = 'Guardar';
+    btn.disabled = false;
+  }
+
+</script>
+
+<!-- BOTON FLOTANTE -->
+<button class="fab" onclick="abrirModal()">+</button>
+
+<!-- MODAL AGREGAR ALUMNO -->
+<div class="modal-overlay" id="modalOverlay" onclick="cerrarModal()"></div>
+<div class="modal" id="modal">
+  <div class="modal-header">
+    <p class="modal-title">Agregar nuevo alumno</p>
+    <button class="modal-close" onclick="cerrarModal()">&#x2715;</button>
+  </div>
+  <div class="modal-body">
+    <div class="field-group"><label>Codigo</label><input type="text" id="f_codigo" placeholder="Ej: 1012"></div>
+    <div class="field-group"><label>Apellidos y Nombres *</label><input type="text" id="f_nombre" placeholder="Nombre completo en mayusculas"></div>
+    <div class="field-group"><label>DNI</label><input type="text" id="f_dni" placeholder="Ej: 45123456"></div>
+    <div class="field-group"><label>Ciudad</label><input type="text" id="f_ciudad" placeholder="Ej: PUCALLPA"></div>
+    <div class="field-group"><label>Curso *</label><input type="text" id="f_curso" placeholder="Ej: OFIMATICA BASICA"></div>
+    <div class="field-group"><label>Mencion</label><input type="text" id="f_mencion" placeholder="Ej: MICROSOFT OFFICE 2019"></div>
+    <div class="field-group"><label>Fecha Inicio</label><input type="date" id="f_fecha_inicio"></div>
+    <div class="field-group"><label>Fecha Termino</label><input type="date" id="f_fecha_termino"></div>
+    <div id="msg_error" class="msg-error" style="display:none"></div>
+    <div id="msg_ok" class="msg-ok" style="display:none">Alumno agregado correctamente!</div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+    <button class="btn-guardar" id="btnGuardar" onclick="guardarAlumno()">Guardar</button>
+  </div>
+</div>
+
+</body>
+</html>
