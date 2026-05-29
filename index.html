@@ -242,26 +242,6 @@
     }
     @keyframes girar { to { transform: rotate(360deg); } }
 
-    /* ERROR CONFIG */
-    .config-aviso {
-      background: #FEF3CD;
-      border: 1.5px solid #F0C050;
-      border-radius: 12px;
-      padding: 16px;
-      margin: 16px;
-      font-size: 13px;
-      max-width: 668px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-    .config-aviso strong { color: #A07000; }
-    .config-aviso code {
-      background: #F0E0A0;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 12px;
-    }
-
     footer {
       text-align: center;
       padding: 24px;
@@ -372,7 +352,6 @@
     .btn-guardar:disabled { opacity: 0.6; }
     .msg-error { background: #FCEBEB; color: #A32D2D; border-radius: 8px; padding: 8px 12px; font-size: 12px; }
     .msg-ok { background: #EAF7F0; color: #1A7A4A; border-radius: 8px; padding: 8px 12px; font-size: 12px; }
-
   </style>
 </head>
 <body>
@@ -413,7 +392,6 @@
       document.getElementById('passInput').focus();
     }
   }
-  // Si ya ingresó antes, no pedir contraseña
   if (localStorage.getItem('vitec_auth') === '1') {
     document.addEventListener('DOMContentLoaded', function() {
       var s = document.getElementById('loginScreen');
@@ -422,21 +400,11 @@
   }
 </script>
 
-
 <header>
   <div class="header-badge">Sistema de Consulta</div>
   <h1>📜 Certificaciones</h1>
   <p>Busca por DNI o nombre del alumno</p>
 </header>
-
-
-<div class="config-aviso" id="avisoConfig" style="display:none">
-  <strong>⚙️ Paso final: conecta tu base de datos</strong><br><br>
-  Abre este archivo en un editor de texto (Notepad) y cambia estas 2 líneas:<br><br>
-  <code>TU_URL_SUPABASE</code> → tu URL del proyecto (ej: https://xyz.supabase.co)<br>
-  <code>TU_CLAVE_SUPABASE</code> → tu clave "anon public"<br><br>
-  Encuéntralas en Supabase → Settings → API
-</div>
 
 <div class="search-wrap">
   <div class="search-box">
@@ -473,16 +441,16 @@
     <button class="modal-close" onclick="cerrarModal()">&#x2715;</button>
   </div>
   <div class="modal-body">
-    <div class="field-group"><label>Codigo</label><input type="text" id="f_codigo" placeholder="Ej: 1012"></div>
-    <div class="field-group"><label>Apellidos y Nombres *</label><input type="text" id="f_nombre" placeholder="Nombre completo en mayusculas"></div>
+    <div class="field-group"><label>Código</label><input type="text" id="f_codigo" placeholder="Ej: 1012"></div>
+    <div class="field-group"><label>Apellidos y Nombres *</label><input type="text" id="f_nombre" placeholder="Nombre completo en mayúsculas"></div>
     <div class="field-group"><label>DNI</label><input type="text" id="f_dni" placeholder="Ej: 45123456"></div>
     <div class="field-group"><label>Ciudad</label><input type="text" id="f_ciudad" placeholder="Ej: PUCALLPA"></div>
-    <div class="field-group"><label>Curso *</label><input type="text" id="f_curso" placeholder="Ej: OFIMATICA BASICA"></div>
-    <div class="field-group"><label>Mencion</label><input type="text" id="f_mencion" placeholder="Ej: MICROSOFT OFFICE 2019"></div>
+    <div class="field-group"><label>Curso *</label><input type="text" id="f_curso" placeholder="Ej: OFIMÁTICA BÁSICA"></div>
+    <div class="field-group"><label>Mención</label><input type="text" id="f_mencion" placeholder="Ej: MICROSOFT OFFICE 2019"></div>
     <div class="field-group"><label>Fecha Inicio</label><input type="date" id="f_fecha_inicio"></div>
-    <div class="field-group"><label>Fecha Termino</label><input type="date" id="f_fecha_termino"></div>
+    <div class="field-group"><label>Fecha Término</label><input type="date" id="f_fecha_termino"></div>
     <div id="msg_error" class="msg-error" style="display:none"></div>
-    <div id="msg_ok" class="msg-ok" style="display:none">Alumno agregado correctamente!</div>
+    <div id="msg_ok" class="msg-ok" style="display:none">¡Alumno agregado correctamente!</div>
   </div>
   <div class="modal-footer">
     <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
@@ -492,28 +460,16 @@
 
 <script>
   // ============================================
-  // 🔧 CAMBIA ESTOS 2 DATOS CON LOS TUYOS
+  // 🔧 CONEXIÓN DIRECTA A SUPABASE
   const URL_SUPABASE = 'https://mdvhnqivpkedqqgknhfo.supabase.co';
   const CLAVE_SUPABASE = 'sb_publishable_u7GSwT3TEqlb3Zvtplt17g_Z3xkKFMB';
-  const NOMBRE_TABLA = 'CERTIFICACIONES'; // nombre de tu tabla en Supabase
+  const NOMBRE_TABLA = 'CERTIFICACIONES'; 
   // ============================================
 
   let todos = [];
   let cursoFiltro = '';
 
   async function cargar() {
-    if (URL_SUPABASE === 'TU_URL_SUPABASE') {
-      todos = [
-        { codigo: 8478, apellidos_y_nombres: 'ISAAC ANDERSON MOURAO ESCOBED', dni: '47743772', ciudad: 'PUCALLPA', curso: 'ANÁLISIS DE DATOS SPSS', fecha_de_inicio: '2020-02-07', fecha_de_termino: '2020-10-18', mencion: 'AUXILIAR EN BIBLIOTECA', cursos_1: '', nota_1: '', total_de_certificados: 262 },
-        { codigo: 8474, apellidos_y_nombres: 'INOCENTE CÓRDOVA, MARJIN SHEYLA', dni: '62285159', ciudad: 'NYO', curso: 'OFIMÁTICA', fecha_de_inicio: '2020-03-07', fecha_de_termino: '2020-10-18', mencion: '', cursos_1: 'WINDOWS', nota_1: 17, total_de_certificados: 262 },
-        { codigo: 8475, apellidos_y_nombres: 'TERESA FERNANDEZ VARGAS MARTINEZ', dni: '', ciudad: 'PUCALLPA', curso: 'OFIMÁTICA BÁSICA', fecha_de_inicio: '2020-07-03', fecha_de_termino: '2020-10-18', mencion: 'MICROSOFT OFFICE 2019', cursos_1: 'WINDOWS', nota_1: 17, total_de_certificados: 265 },
-        { codigo: 8476, apellidos_y_nombres: 'SANLUCIANO ABEYALO, CRISTHIAN', dni: '', ciudad: 'PUCALLPA - LIMA', curso: 'REDES', fecha_de_inicio: '2020-06-01', fecha_de_termino: '2020-10-18', mencion: 'REDES TELECOMUNICACIONES', cursos_1: 'TIPO DE REDES', nota_1: 18, total_de_certificados: 268 },
-        { codigo: 8477, apellidos_y_nombres: 'CRISTINA MORENO PIRCA', dni: '', ciudad: 'PUCALLPA - LIMA', curso: 'OFIMÁTICA BÁSICA', fecha_de_inicio: '2020-07-03', fecha_de_termino: '2020-10-18', mencion: 'MICROSOFT OFFICE 2019', cursos_1: 'WINDOWS', nota_1: 17, total_de_certificados: 265 },
-      ];
-      mostrar(todos);
-      return;
-    }
-
     try {
       const r = await fetch(`${URL_SUPABASE}/rest/v1/${NOMBRE_TABLA}?select=*&limit=1000`, {
         headers: {
@@ -523,13 +479,15 @@
       });
       if (!r.ok) throw new Error('Error al cargar');
       todos = await r.json();
-      mostrar(todos);
+      
+      // AL TERMINAR DE CARGAR, FILTRA AUTOMÁTICAMENTE PARA MOSTRAR LA BASE COMPLETA
+      filtrar();
     } catch (e) {
       document.getElementById('resultados').innerHTML = `
         <div class="vacio">
           <div class="vacio-icon">⚠️</div>
-          <h3>No se pudo conectar</h3>
-          <p>Verifica tu URL y clave de Supabase</p>
+          <h3>No se pudo conectar a la base de datos</h3>
+          <p>Verifica que las políticas RLS en tu panel de Supabase estén en 'Disabled' o permitan lecturas públicas.</p>
         </div>`;
     }
   }
@@ -538,40 +496,37 @@
     const q = document.getElementById('buscador').value.toLowerCase().trim();
     let lista = todos;
 
-    // Filtro por pestaña de curso (Normalizado para evitar fallos por tildes o mayúsculas)
+    // 1. Filtro por categoría superior (Normalizado sin tildes)
     if (cursoFiltro) {
       lista = lista.filter(r => {
-        const cursoAlumno = (r.curso || '').toLowerCase()
-          .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // quita tildes
-        const filtroNormalizado = cursoFiltro.toLowerCase()
-          .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const cursoAlumno = (r.curso || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const filtroNormalizado = cursoFiltro.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         return cursoAlumno.includes(filtroNormalizado);
       });
     }
 
-    // Buscar por DNI o por Nombre de manera limpia
+    // 2. Filtro por el cuadro de texto (DNI o Nombre)
     if (q) {
       const esDNI = /^[0-9]+$/.test(q);
       if (esDNI) {
         lista = lista.filter(r => (r.dni || '').toString().trim().includes(q));
       } else {
         lista = lista.filter(r => {
-          const nombreAlumno = (r.apellidos_y_nombres || '').toLowerCase()
-            .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          const nombreAlumno = (r.apellidos_y_nombres || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
           const busquedaNormalizada = q.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
           return nombreAlumno.includes(busquedaNormalizada);
         });
       }
     }
 
-    // Ordenar por fecha o código descendente
+    // 3. Ordenar por fecha de manera descendente (Más recientes primero)
     lista = lista.sort((a, b) => {
-      const fa = a.fecha_termino || a.fecha_inicio || '';
-      const fb = b.fecha_termino || b.fecha_inicio || '';
+      const fa = a.fecha_termino || a.fecha_de_termino || a.fecha_inicio || a.fecha_de_inicio || '';
+      const fb = b.fecha_termino || b.fecha_de_termino || b.fecha_inicio || b.fecha_de_inicio || '';
       return fb.localeCompare(fa);
     });
 
-    mostrar(lista, q);
+    mostrar(lista);
   }
 
   function setFiltro(curso, btn) {
@@ -581,19 +536,20 @@
     filtrar();
   }
 
-  function mostrar(lista, q) {
+  function mostrar(lista) {
     const cont = document.getElementById('resultados');
     const contador = document.getElementById('contador');
+    const searchVal = document.getElementById('buscador').value.trim();
+
     contador.textContent = `${lista.length} resultado${lista.length !== 1 ? 's' : ''} encontrado${lista.length !== 1 ? 's' : ''}`;
 
     if (lista.length === 0) {
-      const searchVal = document.getElementById('buscador').value.trim();
       const esDNI = /^[0-9]+$/.test(searchVal);
       cont.innerHTML = `
         <div class="vacio">
           <div class="vacio-icon">❌</div>
-          <h3>${searchVal ? (esDNI ? `El DNI <strong>${searchVal}</strong> no existe en el sistema` : `No se encontró ningún alumno con ese nombre`) : 'No hay resultados'}</h3>
-          <p>${searchVal ? 'Verifica que el dato sea correcto e intenta de nuevo' : 'Escribe un nombre o DNI para buscar'}</p>
+          <h3>${searchVal ? (esDNI ? `El DNI <strong>${searchVal}</strong> no está registrado` : `No se encontró ningún alumno con el nombre "${searchVal}"`) : 'No hay certificados cargados'}</h3>
+          <p>Verifica la escritura o cambia de filtro e intenta de nuevo.</p>
         </div>`;
       return;
     }
@@ -602,7 +558,7 @@
       <div class="card">
         <div class="card-top">
           <div class="card-nombre">${r.apellidos_y_nombres || '—'}</div>
-          <div class="card-codigo">#${r.codigo || ''}</div>
+          <div class="card-codigo">#${r.codigo || '—'}</div>
         </div>
         <div class="card-curso">📚 ${r.curso || '—'}</div>
         <div class="card-info">
@@ -616,6 +572,7 @@
     `).join('');
   }
 
+  // Ejecución inicial al abrir la página
   cargar();
 
   function abrirModal() {
@@ -645,6 +602,7 @@
     const btn = document.getElementById('btnGuardar');
     btn.textContent = 'Guardando...';
     btn.disabled = true;
+
     const nuevo = {
       codigo: document.getElementById('f_codigo').value.trim() || null,
       apellidos_y_nombres: nombre,
@@ -655,6 +613,7 @@
       fecha_inicio: document.getElementById('f_fecha_inicio').value || null,
       fecha_termino: document.getElementById('f_fecha_termino').value || null,
     };
+
     try {
       const r = await fetch(`${URL_SUPABASE}/rest/v1/${NOMBRE_TABLA}`, {
         method: 'POST',
@@ -663,8 +622,7 @@
           'Authorization': `Bearer ${CLAVE_SUPABASE}`,
           'Content-Type': 'application/json',
           'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify(nuevo)
+        }
       });
       if (!r.ok) throw new Error('Error al guardar');
       document.getElementById('msg_ok').style.display = 'block';
@@ -674,7 +632,7 @@
     } catch(e) {
       const err = document.getElementById('msg_error');
       err.style.display = 'block';
-      err.textContent = 'Error al guardar. Verifica tu conexion.';
+      err.textContent = 'Error al guardar. Verifica los permisos de tu tabla.';
     }
     btn.textContent = 'Guardar';
     btn.disabled = false;
