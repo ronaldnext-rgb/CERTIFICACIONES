@@ -460,7 +460,7 @@
 
 <script>
   // ============================================
-  // 🔧 CONEXIÓN DIRECTA A SUPABASE
+  // CONFIGURACIÓN DE CONEXIÓN A SUPABASE
   const URL_SUPABASE = 'https://mdvhnqivpkedqqgknhfo.supabase.co';
   const CLAVE_SUPABASE = 'sb_publishable_u7GSwT3TEqlb3Zvtplt17g_Z3xkKFMB';
   const NOMBRE_TABLA = 'CERTIFICACIONES'; 
@@ -472,22 +472,22 @@
   async function cargar() {
     try {
       const r = await fetch(`${URL_SUPABASE}/rest/v1/${NOMBRE_TABLA}?select=*&limit=1000`, {
+        method: 'GET',
         headers: {
           'apikey': CLAVE_SUPABASE,
-          'Authorization': `Bearer ${CLAVE_SUPABASE}`
+          'Authorization': `Bearer ${CLAVE_SUPABASE}`,
+          'Content-Type': 'application/json'
         }
       });
-      if (!r.ok) throw new Error('Error al cargar');
+      if (!r.ok) throw new Error('Error de conexión');
       todos = await r.json();
-      
-      // AL TERMINAR DE CARGAR, FILTRA AUTOMÁTICAMENTE PARA MOSTRAR LA BASE COMPLETA
       filtrar();
     } catch (e) {
       document.getElementById('resultados').innerHTML = `
         <div class="vacio">
           <div class="vacio-icon">⚠️</div>
-          <h3>No se pudo conectar a la base de datos</h3>
-          <p>Verifica que las políticas RLS en tu panel de Supabase estén en 'Disabled' o permitan lecturas públicas.</p>
+          <h3>Error de conexión a la base de datos</h3>
+          <p>Asegúrate de que las políticas RLS de lectura pública estén configuradas en Supabase.</p>
         </div>`;
     }
   }
@@ -496,7 +496,6 @@
     const q = document.getElementById('buscador').value.toLowerCase().trim();
     let lista = todos;
 
-    // 1. Filtro por categoría superior (Normalizado sin tildes)
     if (cursoFiltro) {
       lista = lista.filter(r => {
         const cursoAlumno = (r.curso || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -505,7 +504,6 @@
       });
     }
 
-    // 2. Filtro por el cuadro de texto (DNI o Nombre)
     if (q) {
       const esDNI = /^[0-9]+$/.test(q);
       if (esDNI) {
@@ -519,7 +517,6 @@
       }
     }
 
-    // 3. Ordenar por fecha de manera descendente (Más recientes primero)
     lista = lista.sort((a, b) => {
       const fa = a.fecha_termino || a.fecha_de_termino || a.fecha_inicio || a.fecha_de_inicio || '';
       const fb = b.fecha_termino || b.fecha_de_termino || b.fecha_inicio || b.fecha_de_inicio || '';
@@ -548,8 +545,8 @@
       cont.innerHTML = `
         <div class="vacio">
           <div class="vacio-icon">❌</div>
-          <h3>${searchVal ? (esDNI ? `El DNI <strong>${searchVal}</strong> no está registrado` : `No se encontró ningún alumno con el nombre "${searchVal}"`) : 'No hay certificados cargados'}</h3>
-          <p>Verifica la escritura o cambia de filtro e intenta de nuevo.</p>
+          <h3>${searchVal ? (esDNI ? `El DNI <strong>${searchVal}</strong> no está registrado` : `No se encontró ningún alumno con el nombre "${searchVal}"`) : 'Escribe un nombre o DNI en el buscador superior para comenzar'}</h3>
+          <p>O selecciona una categoría distinta del menú de filtros.</p>
         </div>`;
       return;
     }
@@ -572,7 +569,6 @@
     `).join('');
   }
 
-  // Ejecución inicial al abrir la página
   cargar();
 
   function abrirModal() {
@@ -622,7 +618,8 @@
           'Authorization': `Bearer ${CLAVE_SUPABASE}`,
           'Content-Type': 'application/json',
           'Prefer': 'return=minimal'
-        }
+        },
+        body: JSON.stringify(nuevo)
       });
       if (!r.ok) throw new Error('Error al guardar');
       document.getElementById('msg_ok').style.display = 'block';
