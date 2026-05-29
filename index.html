@@ -1,3 +1,4 @@
+HTML
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -377,7 +378,6 @@
 </head>
 <body>
 
-<!-- PANTALLA DE CONTRASEÑA -->
 <div id="loginScreen" style="
   position:fixed; inset:0; background:#C0392B;
   display:flex; align-items:center; justify-content:center;
@@ -465,26 +465,30 @@
 
 <footer>Sistema de Certificaciones · Powered by Supabase</footer>
 
-<!-- BOTON FLOTANTE -->
 <button class="fab" onclick="abrirModal()" title="Agregar alumno">+</button>
 
-<!-- MODAL -->
 <div class="modal-overlay" id="modalOverlay" onclick="cerrarModal()"></div>
 <div class="modal" id="modal">
-  <div class="modal-header"><p class="modal-title">Agregar nuevo alumno</p><button class="modal-close" onclick="cerrarModal()">X</button></div>
+  <div class="modal-header">
+    <p class="modal-title">Agregar nuevo alumno</p>
+    <button class="modal-close" onclick="cerrarModal()">&#x2715;</button>
+  </div>
   <div class="modal-body">
     <div class="field-group"><label>Codigo</label><input type="text" id="f_codigo" placeholder="Ej: 1012"></div>
-    <div class="field-group"><label>Apellidos y Nombres</label><input type="text" id="f_nombre" placeholder="Nombre completo"></div>
+    <div class="field-group"><label>Apellidos y Nombres *</label><input type="text" id="f_nombre" placeholder="Nombre completo en mayusculas"></div>
     <div class="field-group"><label>DNI</label><input type="text" id="f_dni" placeholder="Ej: 45123456"></div>
     <div class="field-group"><label>Ciudad</label><input type="text" id="f_ciudad" placeholder="Ej: PUCALLPA"></div>
-    <div class="field-group"><label>Curso</label><input type="text" id="f_curso" placeholder="Ej: OFIMATICA BASICA"></div>
+    <div class="field-group"><label>Curso *</label><input type="text" id="f_curso" placeholder="Ej: OFIMATICA BASICA"></div>
     <div class="field-group"><label>Mencion</label><input type="text" id="f_mencion" placeholder="Ej: MICROSOFT OFFICE 2019"></div>
     <div class="field-group"><label>Fecha Inicio</label><input type="date" id="f_fecha_inicio"></div>
     <div class="field-group"><label>Fecha Termino</label><input type="date" id="f_fecha_termino"></div>
     <div id="msg_error" class="msg-error" style="display:none"></div>
     <div id="msg_ok" class="msg-ok" style="display:none">Alumno agregado correctamente!</div>
   </div>
-  <div class="modal-footer"><button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button><button class="btn-guardar" id="btnGuardar" onclick="guardarAlumno()">Guardar</button></div>
+  <div class="modal-footer">
+    <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+    <button class="btn-guardar" id="btnGuardar" onclick="guardarAlumno()">Guardar</button>
+  </div>
 </div>
 
 <script>
@@ -496,11 +500,10 @@
   // ============================================
 
   let todos = [];
-  let ciudadFiltro = '';
+  let cursoFiltro = '';
 
   async function cargar() {
     if (URL_SUPABASE === 'TU_URL_SUPABASE') {
-      // Modo demo con datos de ejemplo
       todos = [
         { codigo: 8478, apellidos_y_nombres: 'ISAAC ANDERSON MOURAO ESCOBED', dni: '47743772', ciudad: 'PUCALLPA', curso: 'ANÁLISIS DE DATOS SPSS', fecha_de_inicio: '2020-02-07', fecha_de_termino: '2020-10-18', mencion: 'AUXILIAR EN BIBLIOTECA', cursos_1: '', nota_1: '', total_de_certificados: 262 },
         { codigo: 8474, apellidos_y_nombres: 'INOCENTE CÓRDOVA, MARJIN SHEYLA', dni: '62285159', ciudad: 'NYO', curso: 'OFIMÁTICA', fecha_de_inicio: '2020-03-07', fecha_de_termino: '2020-10-18', mencion: '', cursos_1: 'WINDOWS', nota_1: 17, total_de_certificados: 262 },
@@ -511,8 +514,6 @@
       mostrar(todos);
       return;
     }
-
-    document.getElementById('avisoConfig').style.display = 'none';
 
     try {
       const r = await fetch(`${URL_SUPABASE}/rest/v1/${NOMBRE_TABLA}?select=*&limit=1000`, {
@@ -538,20 +539,33 @@
     const q = document.getElementById('buscador').value.toLowerCase().trim();
     let lista = todos;
 
-    // Filtro por curso
-    if (ciudadFiltro) lista = lista.filter(r => (r.curso || '').toUpperCase().includes(ciudadFiltro));
+    // Filtro por pestaña de curso (Normalizado para evitar fallos por tildes o mayúsculas)
+    if (cursoFiltro) {
+      lista = lista.filter(r => {
+        const cursoAlumno = (r.curso || '').toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // quita tildes
+        const filtroNormalizado = cursoFiltro.toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return cursoAlumno.includes(filtroNormalizado);
+      });
+    }
 
-    // Buscar solo por DNI o nombre
+    // Buscar por DNI o por Nombre de manera limpia
     if (q) {
       const esDNI = /^[0-9]+$/.test(q);
       if (esDNI) {
-        lista = lista.filter(r => (r.dni || '').toString().includes(q));
+        lista = lista.filter(r => (r.dni || '').toString().trim().includes(q));
       } else {
-        lista = lista.filter(r => (r.apellidos_y_nombres || '').toLowerCase().includes(q));
+        lista = lista.filter(r => {
+          const nombreAlumno = (r.apellidos_y_nombres || '').toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          const busquedaNormalizada = q.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          return nombreAlumno.includes(busquedaNormalizada);
+        });
       }
     }
 
-    // Ordenar por fecha más reciente primero
+    // Ordenar por fecha o código descendente
     lista = lista.sort((a, b) => {
       const fa = a.fecha_termino || a.fecha_inicio || '';
       const fb = b.fecha_termino || b.fecha_inicio || '';
@@ -562,7 +576,7 @@
   }
 
   function setFiltro(curso, btn) {
-    ciudadFiltro = curso;
+    cursoFiltro = curso;
     document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
     btn.classList.add('activo');
     filtrar();
@@ -574,13 +588,13 @@
     contador.textContent = `${lista.length} resultado${lista.length !== 1 ? 's' : ''} encontrado${lista.length !== 1 ? 's' : ''}`;
 
     if (lista.length === 0) {
-      const q = document.getElementById('buscador').value.trim();
-      const esDNI = /^[0-9]+$/.test(q);
+      const searchVal = document.getElementById('buscador').value.trim();
+      const esDNI = /^[0-9]+$/.test(searchVal);
       cont.innerHTML = `
         <div class="vacio">
           <div class="vacio-icon">❌</div>
-          <h3>${q ? (esDNI ? `El DNI <strong>${q}</strong> no existe en el sistema` : `No se encontró ningún alumno con ese nombre`) : 'No hay resultados'}</h3>
-          <p>${q ? 'Verifica que el dato sea correcto e intenta de nuevo' : 'Escribe un nombre o DNI para buscar'}</p>
+          <h3>${searchVal ? (esDNI ? `El DNI <strong>${searchVal}</strong> no existe en el sistema` : `No se encontró ningún alumno con ese nombre`) : 'No hay resultados'}</h3>
+          <p>${searchVal ? 'Verifica que el dato sea correcto e intenta de nuevo' : 'Escribe un nombre o DNI para buscar'}</p>
         </div>`;
       return;
     }
@@ -598,7 +612,7 @@
           ${r.mencion ? `<span class="tag tag-dorado">🏅 ${r.mencion}</span>` : ''}
           ${r.total_de_certificados ? `<span class="tag">Total: ${r.total_de_certificados} cert.</span>` : ''}
         </div>
-        ${r.fecha_de_termino ? `<div class="card-fecha">Fecha: ${r.fecha_de_termino}</div>` : ''}
+        ${r.fecha_de_termino || r.fecha_termino ? `<div class="card-fecha">Fecha: ${r.fecha_de_termino || r.fecha_termino}</div>` : ''}
       </div>
     `).join('');
   }
@@ -666,36 +680,7 @@
     btn.textContent = 'Guardar';
     btn.disabled = false;
   }
-
 </script>
-
-<!-- BOTON FLOTANTE -->
-<button class="fab" onclick="abrirModal()">+</button>
-
-<!-- MODAL AGREGAR ALUMNO -->
-<div class="modal-overlay" id="modalOverlay" onclick="cerrarModal()"></div>
-<div class="modal" id="modal">
-  <div class="modal-header">
-    <p class="modal-title">Agregar nuevo alumno</p>
-    <button class="modal-close" onclick="cerrarModal()">&#x2715;</button>
-  </div>
-  <div class="modal-body">
-    <div class="field-group"><label>Codigo</label><input type="text" id="f_codigo" placeholder="Ej: 1012"></div>
-    <div class="field-group"><label>Apellidos y Nombres *</label><input type="text" id="f_nombre" placeholder="Nombre completo en mayusculas"></div>
-    <div class="field-group"><label>DNI</label><input type="text" id="f_dni" placeholder="Ej: 45123456"></div>
-    <div class="field-group"><label>Ciudad</label><input type="text" id="f_ciudad" placeholder="Ej: PUCALLPA"></div>
-    <div class="field-group"><label>Curso *</label><input type="text" id="f_curso" placeholder="Ej: OFIMATICA BASICA"></div>
-    <div class="field-group"><label>Mencion</label><input type="text" id="f_mencion" placeholder="Ej: MICROSOFT OFFICE 2019"></div>
-    <div class="field-group"><label>Fecha Inicio</label><input type="date" id="f_fecha_inicio"></div>
-    <div class="field-group"><label>Fecha Termino</label><input type="date" id="f_fecha_termino"></div>
-    <div id="msg_error" class="msg-error" style="display:none"></div>
-    <div id="msg_ok" class="msg-ok" style="display:none">Alumno agregado correctamente!</div>
-  </div>
-  <div class="modal-footer">
-    <button class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
-    <button class="btn-guardar" id="btnGuardar" onclick="guardarAlumno()">Guardar</button>
-  </div>
-</div>
 
 </body>
 </html>
