@@ -427,7 +427,7 @@
 <header>
   <div class="header-badge">Sistema de Consulta</div>
   <h1>📜 Certificaciones</h1>
-  <p>Busca por nombre, DNI, curso o ciudad</p>
+  <p>Busca por DNI o nombre del alumno</p>
 </header>
 
 
@@ -442,17 +442,18 @@
 <div class="search-wrap">
   <div class="search-box">
     <span class="search-icon">🔍</span>
-    <input type="text" id="buscador" placeholder="Busca por nombre, DNI, curso, ciudad..." oninput="filtrar()">
+    <input type="text" id="buscador" placeholder="Busca por DNI o nombre..." oninput="filtrar()">
   </div>
   <div id="contador"></div>
 </div>
 
-<div class="filtros">
+<div class="filtros" id="filtrosCursos">
   <button class="filtro-btn activo" onclick="setFiltro('', this)">Todos</button>
-  <button class="filtro-btn" onclick="setFiltro('PUCALLPA', this)">Pucallpa</button>
-  <button class="filtro-btn" onclick="setFiltro('LIMA', this)">Lima</button>
   <button class="filtro-btn" onclick="setFiltro('OFIMÁTICA', this)">Ofimática</button>
+  <button class="filtro-btn" onclick="setFiltro('SHIPIBO', this)">Shipibo Konibo</button>
   <button class="filtro-btn" onclick="setFiltro('INGLÉS', this)">Inglés</button>
+  <button class="filtro-btn" onclick="setFiltro('REDES', this)">Redes</button>
+  <button class="filtro-btn" onclick="setFiltro('TRIBUTARIA', this)">Tributaria</button>
 </div>
 
 <div class="resultados" id="resultados">
@@ -536,36 +537,50 @@
   function filtrar() {
     const q = document.getElementById('buscador').value.toLowerCase().trim();
     let lista = todos;
-    if (ciudadFiltro) lista = lista.filter(r => (r.ciudad || '').toUpperCase().includes(ciudadFiltro) || (r.curso || '').toUpperCase().includes(ciudadFiltro));
-    if (q) lista = lista.filter(r =>
-      (r.apellidos_y_nombres || '').toLowerCase().includes(q) ||
-      (r.dni || '').includes(q) ||
-      (r.curso || '').toLowerCase().includes(q) ||
-      (r.ciudad || '').toLowerCase().includes(q) ||
-      (r.mencion || '').toLowerCase().includes(q) ||
-      String(r.codigo || '').includes(q)
-    );
-    mostrar(lista);
+
+    // Filtro por curso
+    if (ciudadFiltro) lista = lista.filter(r => (r.curso || '').toUpperCase().includes(ciudadFiltro));
+
+    // Buscar solo por DNI o nombre
+    if (q) {
+      const esDNI = /^[0-9]+$/.test(q);
+      if (esDNI) {
+        lista = lista.filter(r => (r.dni || '').toString().includes(q));
+      } else {
+        lista = lista.filter(r => (r.apellidos_y_nombres || '').toLowerCase().includes(q));
+      }
+    }
+
+    // Ordenar por fecha más reciente primero
+    lista = lista.sort((a, b) => {
+      const fa = a.fecha_termino || a.fecha_inicio || '';
+      const fb = b.fecha_termino || b.fecha_inicio || '';
+      return fb.localeCompare(fa);
+    });
+
+    mostrar(lista, q);
   }
 
-  function setFiltro(ciudad, btn) {
-    ciudadFiltro = ciudad;
+  function setFiltro(curso, btn) {
+    ciudadFiltro = curso;
     document.querySelectorAll('.filtro-btn').forEach(b => b.classList.remove('activo'));
     btn.classList.add('activo');
     filtrar();
   }
 
-  function mostrar(lista) {
+  function mostrar(lista, q) {
     const cont = document.getElementById('resultados');
     const contador = document.getElementById('contador');
     contador.textContent = `${lista.length} resultado${lista.length !== 1 ? 's' : ''} encontrado${lista.length !== 1 ? 's' : ''}`;
 
     if (lista.length === 0) {
+      const q = document.getElementById('buscador').value.trim();
+      const esDNI = /^[0-9]+$/.test(q);
       cont.innerHTML = `
         <div class="vacio">
-          <div class="vacio-icon">🔎</div>
-          <h3>No se encontraron resultados</h3>
-          <p>Intenta con otro nombre, DNI o curso</p>
+          <div class="vacio-icon">❌</div>
+          <h3>${q ? (esDNI ? `El DNI <strong>${q}</strong> no existe en el sistema` : `No se encontró ningún alumno con ese nombre`) : 'No hay resultados'}</h3>
+          <p>${q ? 'Verifica que el dato sea correcto e intenta de nuevo' : 'Escribe un nombre o DNI para buscar'}</p>
         </div>`;
       return;
     }
